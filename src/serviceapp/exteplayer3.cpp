@@ -2,6 +2,7 @@
 
 #include <lib/base/eerror.h>
 #include "exteplayer3.h"
+#include <cJSON/cJSON.h>
 
 const std::string  EXT3_SW_DECODING_AAC            = "aac_swdec";
 const std::string  EXT3_SW_DECODING_AC3            = "ac3_swdec";
@@ -152,6 +153,48 @@ std::vector<std::string> ExtEplayer3::buildCommand()
 	// TODO add all options
 	std::vector<std::string> args;
 	args.push_back("exteplayer3");
+	std::string headersStr;
+	std::string key = "";
+
+	FILE *file = fopen("/etc/keys/IPTVchannels.data", "r");
+
+	std::string header = "";
+	std::string time = "";
+	if (file) {
+		// Get the file size
+		fseek(file, 0, SEEK_END);
+		long fileSize = ftell(file);
+		fseek(file, 0, SEEK_SET);
+		// Read the entire file into a buffer
+		char *buffer = (char *)malloc(fileSize + 1);
+		fread(buffer, 1, fileSize, file);
+		buffer[fileSize] = '\0'; // Null-terminate the string
+		// Close the file
+		fclose(file);
+		// Parse the JSON data
+		cJSON *json = cJSON_Parse(buffer);
+		// Check if parsing was successful
+		if (json == NULL) {
+			cJSON_Delete(json);
+			free(buffer);
+		}
+		else {
+			cJSON *item = cJSON_GetObjectItem(json,mPath.c_str());
+			if(item) {
+				key = cJSON_GetObjectItem(item,"key")->valuestring;
+				header = cJSON_GetObjectItem(item,"header")->valuestring;
+				if(header.length()>0) {
+					headersStr += header;
+				}
+				time = cJSON_GetObjectItem(item,"time")->valuestring;
+				if(time.length()>0) {
+					mPath.append(time);
+				}
+			}
+			cJSON_Delete(json);
+			free(buffer);
+		}
+	}
 	size_t pos = mPath.find("&suburi=");
 	size_t pos1 = mPath.find("&cenc_decryption_key=");
 	if (pos1 != std::string::npos)
@@ -176,13 +219,17 @@ std::vector<std::string> ExtEplayer3::buildCommand()
 	{
 		args.push_back(mPath);
 	}
+	if(key.length()>0) {
+		args.push_back("-5");
+		args.push_back(key);
+	}
+
 	std::map<std::string,std::string>::const_iterator i(mHeaders.find("User-Agent"));
 	if (i != mHeaders.end())
 	{
 		args.push_back("-u");
 		args.push_back(i->second);
 	}
-	std::string headersStr;
 	for (std::map<std::string,std::string>::const_iterator i(mHeaders.begin()); i != mHeaders.end(); i++)
 	{
 		if (i->first.compare("User-Agent") == 0)
