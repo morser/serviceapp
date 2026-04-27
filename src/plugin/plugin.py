@@ -50,7 +50,7 @@ config_serviceapp.options["servicemp3"] = ConfigSubsection()
 config_serviceapp.options["servicegstplayer"] = ConfigSubsection()
 config_serviceapp.options["serviceexteplayer3"] = ConfigSubsection()
 for key in list(config_serviceapp.options.keys()):
-	config_serviceapp.options[key].hls_explorer = ConfigYesNo(default=True)
+	config_serviceapp.options[key].hls_explorer = ConfigYesNo(default=False)
 	config_serviceapp.options[key].autoselect_stream = ConfigYesNo(default=True)
 	config_serviceapp.options[key].connection_speed_kb = ConfigInteger(9999999, limits=(0, 9999999))
 	config_serviceapp.options[key].autoturnon_subtitles = ConfigYesNo(default=True)
