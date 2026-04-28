@@ -151,6 +151,29 @@ def init_serviceapp_settings():
 
 init_serviceapp_settings()
 
+def savePreferencesLangs(configElement):
+	def checkspanish(data):
+		if data == "es" or data == "spa":
+			data = "es spa esl esp"
+		if data == "":
+			data = config.misc.language.value
+			if data == "es":
+				data = "es spa esl esp"
+		return data
+	lang1 = checkspanish(config.autolanguage.audio_autoselect1.value)
+	lang2 = checkspanish(config.autolanguage.audio_autoselect2.value)
+	lang3 = checkspanish(config.autolanguage.audio_autoselect3.value)
+	lang4 = checkspanish(config.autolanguage.audio_autoselect4.value)
+	open("/tmp/.exteplayer3.autolangs","w").write(f"{lang1}|{lang2}|{lang3}|{lang4}")
+
+savePreferencesLangs(config.misc.language)
+
+config.autolanguage.audio_autoselect1.addNotifier(savePreferencesLangs)
+config.autolanguage.audio_autoselect2.addNotifier(savePreferencesLangs)
+config.autolanguage.audio_autoselect3.addNotifier(savePreferencesLangs)
+config.autolanguage.audio_autoselect4.addNotifier(savePreferencesLangs)
+config.misc.language.addNotifier(savePreferencesLangs)
+
 
 class ServiceAppSettings(Setup):
 	def __init__(self, session):
